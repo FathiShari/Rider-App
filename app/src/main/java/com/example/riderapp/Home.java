@@ -1,13 +1,17 @@
 package com.example.riderapp;
 
 import android.Manifest;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -19,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -50,11 +55,16 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -65,7 +75,10 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -294,8 +307,7 @@ public class Home extends AppCompatActivity
                 if(!isDriverFound){
                     isDriverFound = true;
                     driverId = key;
-                    btnPickUpRequest.setText("Call Driver");
-                    //Toast.makeText(Home.this,key ,Toast.LENGTH_SHORT).show();
+                    btnPickUpRequest.setText("Pickup Request");
                 }
             }
 
@@ -315,7 +327,6 @@ public class Home extends AppCompatActivity
                 if(!isDriverFound && radius < limit){
                     radius++;
                     findDriver();
-
                 }
                 else{
                     Toast.makeText(Home.this,"No available Drivers" ,Toast.LENGTH_SHORT).show();
@@ -536,11 +547,6 @@ public class Home extends AppCompatActivity
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -552,21 +558,100 @@ public class Home extends AppCompatActivity
 
         if (id == R.id.nav_home) {
             // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.nav_trips) {
 
-        } else if (id == R.id.nav_slideshow) {
+        } else if (id == R.id.nav_change_password) {
+            changePassword();
 
-        } else if (id == R.id.nav_tools) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+        } else if (id == R.id.nav_sign_out) {
+           signOut();
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void changePassword() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(Home.this);
+        alertDialog.setTitle("Change Password");
+        alertDialog.setMessage("Enter Password to change");
+
+        LayoutInflater inflater = LayoutInflater.from(Home.this);
+        View layout_change_password = inflater.inflate(R.layout.layout_change_password,null);
+
+        final EditText currentPass = (EditText)layout_change_password.findViewById(R.id.etPassword);
+        final EditText newPassword = (EditText)layout_change_password.findViewById(R.id.etNewPassword);
+        final EditText confirmPass = (EditText)layout_change_password.findViewById(R.id.etConfirmPassword);
+
+        alertDialog.setView(layout_change_password);
+
+        alertDialog.setPositiveButton("Change", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if(newPassword.getText().toString().equals(confirmPass.getText().toString()))
+                {
+                    String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+                    AuthCredential auth = EmailAuthProvider.getCredential(email,currentPass.getText().toString());
+                    FirebaseAuth.getInstance().getCurrentUser().reauthenticate(auth).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                           if (task.isSuccessful()){
+                               FirebaseAuth.getInstance().getCurrentUser()
+                                       .updatePassword(newPassword.getText().toString()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                   @Override
+                                   public void onComplete(@NonNull Task<Void> task) {
+                                       if (task.isSuccessful()){
+
+                                           Map<String, Object> password = new HashMap<>();
+                                           password.put("password",confirmPass.getText().toString());
+
+                                           DatabaseReference driverInfo = FirebaseDatabase.getInstance().getReference(Common.driver_table_info);
+                                           driverInfo.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                                                   .updateChildren(password)
+                                                   .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                       @Override
+                                                       public void onComplete(@NonNull Task<Void> task) {
+                                                           if (task.isSuccessful())
+                                                               Toast.makeText(Home.this,"Password Updated",Toast.LENGTH_SHORT).show();
+                                                            else
+                                                               Toast.makeText(Home.this,"Password Changed Not Updated",Toast.LENGTH_SHORT).show();
+                                                       }
+                                                   });
+
+                                       }
+                                       else
+                                       {
+                                           Toast.makeText(Home.this,"Password Cannot Change",Toast.LENGTH_SHORT).show();
+                                       }
+                                   }
+                               });
+                           }
+                        }
+                    });
+
+
+                }else{
+                    Toast.makeText(Home.this, "Password Does not math", Toast.LENGTH_SHORT).show();
+
+                }
+            }
+        });
+        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        alertDialog.show();
+    }
+
+    private void signOut() {
+        FirebaseAuth.getInstance().signOut();
+        startActivity(new Intent(Home.this, UserInterface.class));
+        finish();
     }
 
     @Override

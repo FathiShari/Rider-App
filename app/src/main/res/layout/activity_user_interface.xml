@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,7 +8,7 @@
     android:background="@drawable/background_image"
     tools:context=".UserInterface">
 
-    <TextView
+<!--    <TextView
         android:id="@+id/tv_userId"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
@@ -78,7 +79,84 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.59"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" /> !-->
+
+    <TextView
+        android:id="@+id/txtUser"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="150dp"
+        android:layout_marginLeft="90dp"
+        android:padding="10dp"
+        android:text="User Application"
+        android:textColor="@android:color/white"
+        android:textSize="18dp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/layout1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtUser"
+        android:layout_marginTop="70dp"
+        android:orientation="horizontal"
+       >
+
+        <Button
+            android:id="@+id/bt_register"
+            android:layout_marginLeft="40dp"
+            android:layout_gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_weight="1"
+            android:layout_marginRight="30dp"
+            android:text="SIGN UP"
+            android:textColor="@android:color/black"
+            android:textSize="18dp"
+
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout1"
+        android:layout_marginTop="40dp"
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/bt_signIn"
+            android:layout_marginLeft="40dp"
+            android:layout_gravity="center"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_weight="1"
+            android:layout_marginRight="30dp"
+            android:text="SIGN IN"
+            android:textColor="@android:color/black"
+            android:background="@android:color/holo_blue_light"
+            android:textSize="13dp"
+
+            />
+    </LinearLayout>
+
+    <TextView
+       android:layout_below="@+id/layout2"
+        android:layout_marginTop="80dp"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/txtPassword"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="50dp"
+        android:padding="10dp"
+        android:text="FORGOT PASSWORD?? TAP HERE !!"
+        android:textColor="@android:color/white"
+        android:textSize="18dp"
+        android:textStyle="italic" />
 
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>

@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.riderapp.Common.Common;
@@ -30,10 +31,11 @@ public class UserInterface extends AppCompatActivity {
 
     Button btnSingIn,btnSignUp;
     EditText name,phone,email,password;
-    //TextView driverPage;
+    TextView forgotPassword;
     FirebaseAuth auth;
     FirebaseDatabase database;
     DatabaseReference users;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +43,7 @@ public class UserInterface extends AppCompatActivity {
 
         btnSingIn = findViewById(R.id.bt_signIn);
         btnSignUp = findViewById(R.id.bt_register);
+        forgotPassword = (TextView)findViewById(R.id.txtPassword);
 
         auth = FirebaseAuth.getInstance();
         database = FirebaseDatabase.getInstance();
@@ -59,10 +62,55 @@ public class UserInterface extends AppCompatActivity {
             }
         });
 
+        forgotPassword.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialogForgotPassword();
+            }
+        });
 
 
 
+    }
 
+    private void showDialogForgotPassword() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("FORGOT PASSWORD");
+        builder.setMessage("Please Enter Your Emil Address");
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View view = inflater.inflate(R.layout.layout_forgot_password,null);
+
+        final EditText email = view.findViewById(R.id.et_demail);
+        builder.setView(view);
+
+        builder.setPositiveButton("RESETt", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(final DialogInterface dialog, int which) {
+                auth.sendPasswordResetEmail(email.getText().toString().trim()).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                                dialog.dismiss();
+                                Toast.makeText(UserInterface.this,"Reset Password link has been sent to your emil",Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        dialog.dismiss();
+                        Toast.makeText(UserInterface.this,e.getMessage(),Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+
+        builder.setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.show();
     }
 
     private void SignInDialog() {

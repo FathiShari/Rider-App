@@ -56,6 +56,7 @@ public class FirebaseServices extends FirebaseMessagingService {
                }
            });
        }else if(remoteMessage.getNotification().getTitle().equals("Arrived")){
+
            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                showArrivedNotificationApi26(remoteMessage.getNotification().getBody());
            else
